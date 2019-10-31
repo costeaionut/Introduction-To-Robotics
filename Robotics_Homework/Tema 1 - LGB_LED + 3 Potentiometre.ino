@@ -1,6 +1,6 @@
-const int potLedR = A0;
-const int potLedG = A2;
-const int potLedB = A4;
+const int potLedR = A1;
+const int potLedG = A3;
+const int potLedB = A5;
 
 const int pinLedR = 11;
 const int pinLedG = 10;
