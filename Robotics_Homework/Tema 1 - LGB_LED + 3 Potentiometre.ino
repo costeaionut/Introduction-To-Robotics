@@ -12,7 +12,8 @@ int ledValueB;
 
 int potValR;
 int potValG;
-int potValB; 
+int potValB;
+ 
 void setup() {
   // put your setup code here, to run once:
   pinMode(potLedR, INPUT);
@@ -23,7 +24,12 @@ void setup() {
   pinMode(pinLedG, OUTPUT);
   pinMode(pinLedB, OUTPUT);
   
-  Serial.begin(9600);
+}
+
+void colors(int r, int g, int b){
+  analogWrite(pinLedR, r);
+  analogWrite(pinLedG, g);
+  analogWrite(pinLedB, b);
 }
 
 void loop() {
@@ -36,7 +42,5 @@ void loop() {
   ledValueG = map(potValG, 0, 1023, 0, 255);
   ledValueB = map(potValB, 0, 1023, 0, 255);
 
-  analogWrite(pinLedR, ledValueR);
-  analogWrite(pinLedG, ledValueG);
-  analogWrite(pinLedB, ledValueB);
+  colors(ledValueR, ledValueG, ledValueB);
 }
