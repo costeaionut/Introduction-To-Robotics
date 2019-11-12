@@ -1,0 +1,39 @@
+const int passiveBuzzerPin = A0;
+const int activeBuzzerPin = 8;
+const int buttonPin = 2;
+
+int passiveBuzzerValue = 0;
+int threshold = 5;
+int ActivateBuzzer = 0;
+
+int knockMillis;
+int currentMillis;
+
+int buttonState;
+
+void setup() {
+  pinMode(passiveBuzzerPin, INPUT);
+  pinMode(buttonPin, INPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  passiveBuzzerValue = analogRead(passiveBuzzerPin);
+  if(passiveBuzzerValue != 0) Serial.println(passiveBuzzerValue);
+  if(passiveBuzzerValue >= threshold){
+    ActivateBuzzer = 1;
+    Serial.println("Knock");
+    knockMillis = millis();
+  }
+  if(ActivateBuzzer = 1) {
+    currentMillis = millis();
+    if(currentMillis - knockMillis >= 5000) {
+      tone(activeBuzzerPin, 100);
+    }
+  }
+  buttonState = digitalRead(buttonPin);
+  if(buttonState == 1){
+    noTone(activeBuzzerPin);
+    ActivateBuzzer = 0;
+  }
+}
