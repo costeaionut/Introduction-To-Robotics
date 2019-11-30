@@ -1,1 +1,264 @@
+#include <LiquidCrystal.h>
+const int RS = 12;
+const int enable = 11;
+const int d4 = 5;
+const int d5 = 4;
+const int d6 = 3;
+const int d7 = 2;
 
+const int buttonJoyPin = A2;
+const int xAxisPin = A0;
+const int yAxisPin = A1;
+
+int xAxisValue;
+int yAxisValue;
+int lastButtonState;
+int currentButtonState;
+bool wasPressed;
+bool xIsMoved;
+bool yIsMoved;
+int xMinThreshold = 400;
+int xMaxThreshold = 700;
+int yMinThreshold = 400;
+int yMaxThreshold = 700;
+int option = 0;
+
+bool inMenu = 1;
+String title = " Game Main Menu";
+String menuOptions[5] = {
+  ">Start              ", ">Options           ", ">Highscore           "
+};
+
+bool inGame = 0;
+int currentLevel = 0;
+int currentMillis;
+int previousMillis;
+int delayMillis = 2000;
+int lives = 3;
+bool clearOnce = 0;
+int score = 0;
+
+bool inOptions = 0;
+bool inOptionSelect = 1;
+bool inLevelSelect = 0;
+int levelSelect = 0;
+char playerName[3] = {
+  'A', 'A', 'A'
+};
+char Highscore_name[2];
+int optionPossition = 0;///Daca vrem sa selectam Nivel sau nume
+bool inNameChange = 0;
+int namePossition;///Ce litera vrem sa modificam
+
+
+
+bool inHighscore = 0;
+int Highscore = -1;
+
+LiquidCrystal lcd(RS, enable, d4, d5, d6, d7);
+void setup() {
+  lcd.begin(16, 2);
+  Serial.begin(9600);
+  pinMode(xAxisPin, INPUT);
+  pinMode(yAxisPin, INPUT);
+  pinMode(buttonJoyPin, INPUT);
+}
+
+void loop() {
+  if(currentButtonState == 0  && lastButtonState == 1) lastButtonState = 0;
+  xAxisValue = analogRead(xAxisPin);
+  yAxisValue = analogRead(yAxisPin);
+  currentButtonState = analogRead(buttonJoyPin);
+  if(currentButtonState > 0) currentButtonState = 0;
+  else currentButtonState = 1;
+  if(inMenu == 1){
+    if(xAxisValue <= xMinThreshold && xIsMoved != 1){
+      if(option == 0) option = 2;
+      else option--;
+      xIsMoved = 1;
+    }
+    
+    if(xAxisValue >= xMaxThreshold && xIsMoved != 1){
+      if(option == 2) option = 0;
+      else option++;
+      xIsMoved = 1;
+    }
+    if(xAxisValue >= xMinThreshold && xAxisValue <= xMaxThreshold) xIsMoved = 0;
+    lcd.setCursor(0,0);
+    lcd.print(title);
+    lcd.setCursor(0,1);
+    lcd.print(menuOptions[option]);
+    if(currentButtonState == 1 && lastButtonState == 0){
+      if(option == 0){
+        inMenu = 0;
+        inGame = 1;
+        score = 0;
+        lcd.clear();
+      }
+      if(option == 1){
+        inMenu = 0;
+        inOptions = 1;
+        lcd.clear();
+      }
+      if(option == 2){
+        inMenu = 0;
+        inHighscore = 1;
+        lcd.clear();
+      }
+      lastButtonState = 1;
+    }
+  }
+  if(inGame == 1){
+    if(currentLevel == 6){
+      if(clearOnce == 0){
+        lcd.clear();
+        clearOnce = 1; 
+      }
+      lcd.setCursor(4,0);
+      lcd.print("Good Job");
+      lcd.setCursor(1,1);
+      lcd.print("Click for menu");
+      if(currentButtonState == 1 && lastButtonState == 0){
+        inGame = 0;
+        inMenu = 1;
+        lastButtonState = 1;
+        if(Highscore < score){
+          Highscore = score;
+          Highscore_name[0] = playerName[0];
+          Highscore_name[1] = playerName[1];
+          Highscore_name[2] = playerName[2];
+        }
+        currentLevel = 0;
+      }
+    }
+    else{
+      lcd.setCursor(0,0);
+      lcd.print("Lives:");
+      lcd.print(lives);
+      lcd.setCursor(0,1);
+      lcd.print("Level:");
+      lcd.print(currentLevel);
+      lcd.setCursor(8,0);
+      lcd.print("Score:");
+      lcd.print(score);
+      currentMillis = millis();
+      if(currentMillis - previousMillis > delayMillis){
+      currentLevel++;
+      score += 5;
+      previousMillis = currentMillis;
+      clearOnce = 0;  
+    }
+   }
+  }
+  if(inOptions == 1){
+    lcd.setCursor(0,0);
+    if(optionPossition == 0) lcd.print(">Nivel: ");
+    else lcd.print(" Nivel: ");
+    lcd.print(currentLevel+1);
+    lcd.setCursor(0,1);
+    if(optionPossition == 1) lcd.print(">Nume:");
+    else lcd.print(" Nume:");
+    lcd.print(playerName[0]);
+    lcd.print(playerName[1]);
+    lcd.print(playerName[2]);
+    lcd.setCursor(11,1);
+    if(optionPossition == 2) lcd.print(">Back");
+    else lcd.print(" Back");
+    if(inOptionSelect == 1){
+      if(xAxisValue <= xMinThreshold && xIsMoved == 0){
+        if(optionPossition == 0) optionPossition = 2;
+        else optionPossition--;
+        xIsMoved = 1;
+      }
+      if(xAxisValue >= xMaxThreshold && xIsMoved == 0){
+        if(optionPossition == 2) optionPossition = 0;
+        else optionPossition++;
+        xIsMoved = 1;
+      }
+      if(xAxisValue <= xMaxThreshold && xMinThreshold <= xAxisValue) xIsMoved = 0;
+      if(currentButtonState == 1 && lastButtonState == 0){
+        if(optionPossition == 0) {
+          inLevelSelect = 1;
+          inOptionSelect = 0;
+        }
+        if(optionPossition == 1){
+          inNameChange = 1;
+          inOptionSelect = 0;
+        }
+        if(optionPossition == 2){
+          inOptions = 0;
+          inMenu = 1;
+        }
+        lastButtonState = 1;
+      }
+     }
+     if(inLevelSelect == 1){
+      lcd.setCursor(8, 0);
+      if(yAxisValue >= yMaxThreshold && yIsMoved == 0){
+        if(currentLevel == 0) currentLevel = 4;
+        else currentLevel--;
+        yIsMoved = 1;
+      }
+      if(yAxisValue <= yMinThreshold && yIsMoved == 0){
+        if(currentLevel == 4) currentLevel = 0;
+        else currentLevel++;
+        yIsMoved = 1;
+      }
+      if(yMinThreshold <= yAxisValue && yAxisValue <= yMaxThreshold) yIsMoved = 0;
+      if(currentButtonState == 1 && lastButtonState == 0){
+        inLevelSelect = 0;
+        inOptionSelect = 1;
+        lastButtonState = 1;
+      }
+    }
+    if(inNameChange == 1){
+      if(yAxisValue >= yMaxThreshold && yIsMoved == 0){
+        if(namePossition == 0) namePossition = 2;
+        else namePossition--;
+        yIsMoved = 1;
+      }
+      if(yAxisValue <= yMinThreshold && yIsMoved == 0){
+        if(namePossition == 2) namePossition = 0;
+        else namePossition++;
+        yIsMoved = 1;
+      }
+      if(yMinThreshold <= yAxisValue && yAxisValue <= yMaxThreshold) yIsMoved = 0;
+      
+      if(xAxisValue <= xMinThreshold && xIsMoved == 0){
+        if(playerName[namePossition] == 'Z') playerName[namePossition] = 'A';
+        else playerName[namePossition]++;
+        xIsMoved = 1;
+      }
+      if(xAxisValue >= xMaxThreshold && xIsMoved == 0){
+        if(playerName[namePossition] == 'A') playerName[namePossition] = 'Z';
+        else playerName[namePossition]--;
+        xIsMoved = 1;
+      }
+      if(xAxisValue >= xMinThreshold && xAxisValue <= xMaxThreshold) xIsMoved = 0;
+      
+      if(currentButtonState == 1 && lastButtonState == 0){
+        inNameChange = 0;
+        inOptionSelect = 1;
+        lastButtonState = 1;
+      }
+    }
+  }
+  if(inHighscore == 1){
+    lcd.setCursor(2,0);
+    lcd.print("HS:");
+    if(Highscore != -1){
+      lcd.print(Highscore);
+      lcd.print(" ");
+      lcd.print(Highscore_name);
+    }
+    else lcd.print("No HS!");
+    lcd.setCursor(1,1);
+    lcd.print("Press to exit");
+    if(currentButtonState == 1 && lastButtonState == 0){
+      lcd.clear();
+      inMenu = 1;
+      inHighscore = 0;
+      lastButtonState = 1;
+    }
+  }
+}
