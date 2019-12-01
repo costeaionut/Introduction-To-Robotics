@@ -5,3 +5,4 @@
 2. Link catre toate materialele postate: https://www.facebook.com/groups/2665495756841942/
 
 3. Anvata si tu sa ati ampachetezi kitu ~Boule~ : https://www.facebook.com/unibuc.robotics/videos/437688323524275/
+4. Da, stiu, 1 si 2 sunt inversate
